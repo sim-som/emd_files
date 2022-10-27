@@ -1,6 +1,6 @@
 #%%
 import numpy as np
-from skimage import exposure, filters, transform, img_as_ubyte
+from skimage import io, exposure, filters, transform, img_as_ubyte
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 import hyperspy.api as hs
@@ -81,7 +81,7 @@ plt.title("8 bit image data")
 plt.colorbar()
 
 # %%
-# rescale the image TODO
+# rescale the image
 
 downscale_factor = 0.5
 img_data_8bit_downscaled = transform.rescale(img_data_8bit, scale=downscale_factor, anti_aliasing=True)
@@ -222,3 +222,9 @@ im = Image.fromarray(img_data_8bit_downscaled)
 add_scalebar(im, img_data_8bit_downscaled, px_size_meter=px_size_downscaled)
 im
 #%%
+save_dest = emd_file.parent / Path(f"{emd_file.stem}.png")
+im.save(save_dest)
+
+#%%
+test = io.imread("example_images/Grid_2Q-Abeta_control_2nd_trial 20221017 1156 92000 x.png")
+test.shape
