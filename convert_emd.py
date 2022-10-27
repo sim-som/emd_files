@@ -1,12 +1,10 @@
 #%%
 import numpy as np
-from skimage import io, exposure, filters, transform, img_as_ubyte
+from skimage import exposure, filters, transform, img_as_ubyte
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 import hyperspy.api as hs
-from matplotlib import pyplot as plt
-from matplotlib_scalebar.scalebar import ScaleBar
-
+import argparse
 
 
 #%%
@@ -162,9 +160,19 @@ def convert_to_png(emd_file):
 
 ##################################################################################################
 
-img_dir = Path("/home/simon/OneDrive/Dokumente/Promotion/Code/emd_files/example_images")
-glob_pattern = "*.emd"
+parser = argparse.ArgumentParser(
+    prog="Command line EMD to PNG converter"
+)
 
-for emd_file in img_dir.glob(glob_pattern):
+parser.add_argument("emd_dir")
+parser.add_argument("wildcard")
+
+args = parser.parse_args()
+emd_dir = Path(args.emd_dir)
+assert emd_dir.exists() and emd_dir.is_dir()
+wildcard = args.wildcard
+
+
+for emd_file in emd_dir.glob(wildcard):
     print(emd_file)
     convert_to_png(emd_file)
