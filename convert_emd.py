@@ -8,13 +8,9 @@ from matplotlib import pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 
 
-# %%
-# read the emd file:
-emd_file = Path("example_images/Grid_2Q-Abeta_control_2nd_trial 20221017 1156 92000 x.emd")
-emd_obj = hs.load(emd_file)
-img_data = emd_obj.data
 
-#%% 
+#%%
+# Function definitions: 
 def get_pixel_size(emd_obj)->float:
     """Convenience function for getting the pixel size form the MASSIVE metadata tree from hyperspys signal objects.
     Careful: In the metadata tree all values are save as string. Therefore converting to float.
@@ -37,27 +33,6 @@ def get_pixel_size(emd_obj)->float:
 
     return px_size
 
-px_size = get_pixel_size(emd_obj)
-
-#%%
-plt.figure()
-plt.imshow(img_data, cmap="gray")
-plt.title("Raw image data")
-plt.colorbar()
-
-
-# %%
-
-img_data = filters.median(img_data)
-
-plt.figure()
-plt.imshow(img_data, cmap="gray")
-plt.title("Median filterd")
-plt.colorbar()
-
-
-#%%
-# convert to 8 bit for png conversion:
 def convert_to_8bit(img_array:np.ndarray)->np.ndarray:
     """Convert image array to 8 bit for export to png
 
@@ -69,64 +44,6 @@ def convert_to_8bit(img_array:np.ndarray)->np.ndarray:
     """
 
     return img_as_ubyte(exposure.rescale_intensity(img_array))
-
-
-img_data_8bit = convert_to_8bit(img_data)
-
-plt.figure()
-plt.imshow(img_data_8bit, cmap="gray")
-plt.title("8 bit image data")
-plt.colorbar()
-
-# %%
-# downscale the image
-
-downscale_factor = 0.5
-img_data_8bit_downscaled = transform.rescale(img_data_8bit, scale=downscale_factor, anti_aliasing=True)
-img_data_8bit_downscaled = convert_to_8bit(img_data_8bit_downscaled)
-print(f"Size of image scaled by {downscale_factor}:", img_data_8bit_downscaled.shape)
-px_size_downscaled = px_size / downscale_factor
-
-img_data_8bit_downscaled
-
-
-#%%
-# White text with black border doesn't work with matplotlib scalbar artist
-
-scalebar = ScaleBar(
-    dx=px_size,
-    units="m",
-    location="lower left",
-    frameon=True,
-    color="black",
-)
-
-plt.figure()
-plt.imshow(img_data_8bit, cmap="gray")
-plt.title("Image with matplotlib scalebar")
-plt.colorbar()
-ax = plt.gca()
-artist = ax.add_artist(scalebar)
-plt.show()
-
-scalebar = ScaleBar(
-    dx=px_size_downscaled,
-    units="m",
-    location="lower left",
-    frameon=True,
-    color="black",
-)
-
-plt.figure()
-plt.imshow(img_data_8bit_downscaled, cmap="gray")
-plt.title(f"Image with matplotlib scalebar downscaled by {downscale_factor}")
-plt.colorbar()
-ax = plt.gca()
-artist = ax.add_artist(scalebar)
-plt.show()
-
-# %%
-# convert px size to sensible unit
 
 def converted_px_size_and_unit(px_size_meter, img_data):
     """Convert pixel size in meter to meter, mm, µm, nm, or, pm and also return the corresponding length unit.
@@ -161,14 +78,10 @@ def converted_px_size_and_unit(px_size_meter, img_data):
 
     return px_size_val, unit
 
-
-px_size_conv, unit = converted_px_size_and_unit(px_size_downscaled, img_data_8bit_downscaled)
-print(f"Px size: {px_size_conv} {unit} ")
-
-#%%
-# Add scalebar manually without using matplotlib artists:
-
 def add_scalebar(im, img_data:np.ndarray, px_size_meter:float):
+    """
+    Add scalebar manually without using matplotlib artists
+    """
 
     ## Adding text not really working
 
@@ -216,18 +129,9 @@ def add_scalebar(im, img_data:np.ndarray, px_size_meter:float):
     # draw the text in white color:
     draw.text((txt_x, txt_y), text, fill='white', font=font, anchor=None)
 
-im = Image.fromarray(img_data_8bit_downscaled)
-add_scalebar(im, img_data_8bit_downscaled, px_size_meter=px_size_downscaled)
-im
-#%%
-save_dest = emd_file.parent / Path(f"{emd_file.stem}.png")
-im.save(save_dest)
-
-#%%
 def convert_to_png(emd_file):
 
     # read the emd file:
-    emd_file = Path("example_images/Grid_2Q-Abeta_control_2nd_trial 20221017 1156 92000 x.emd")
     print(f"Converting {emd_file.name}")
     
     emd_obj = hs.load(emd_file)
@@ -249,18 +153,18 @@ def convert_to_png(emd_file):
 
     # add ad scalebar and save png file:
     im = Image.fromarray(img_data)
-    add_scalebar(im, img_data, px_size_meter=px_size_downscaled)
+    add_scalebar(im, img_data, px_size_meter=px_size)
     save_dest = emd_file.parent / Path(f"{emd_file.stem}.png")
     print(f"Writing png file (down-)scaled by {downscale_factor} to {save_dest.name}")
     im.save(save_dest)
 
-convert_to_png(emd_file)
 
-# %%
-test = io.imread("example_images/Grid_2Q-Abeta_control_2nd_trial 20221017 1156 92000 x.png")
-print(test.shape)
-plt.figure()
-plt.title("Converted image with scalebar")
-plt.imshow(test, cmap="gray")
 
-# %%
+##################################################################################################
+
+img_dir = Path("/home/simon/OneDrive/Dokumente/Promotion/Code/emd_files/example_images")
+glob_pattern = "*.emd"
+
+for emd_file in img_dir.glob(glob_pattern):
+    print(emd_file)
+    convert_to_png(emd_file)
