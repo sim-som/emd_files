@@ -12,7 +12,6 @@ from matplotlib_scalebar.scalebar import ScaleBar
 # read the emd file:
 emd_file = Path("example_images/Grid_2Q-Abeta_control_2nd_trial 20221017 1156 92000 x.emd")
 emd_obj = hs.load(emd_file)
-
 img_data = emd_obj.data
 
 #%% 
@@ -56,7 +55,6 @@ plt.imshow(img_data, cmap="gray")
 plt.title("Median filterd")
 plt.colorbar()
 
-# %%
 
 #%%
 # convert to 8 bit for png conversion:
@@ -81,7 +79,7 @@ plt.title("8 bit image data")
 plt.colorbar()
 
 # %%
-# rescale the image
+# downscale the image
 
 downscale_factor = 0.5
 img_data_8bit_downscaled = transform.rescale(img_data_8bit, scale=downscale_factor, anti_aliasing=True)
@@ -226,5 +224,43 @@ save_dest = emd_file.parent / Path(f"{emd_file.stem}.png")
 im.save(save_dest)
 
 #%%
+def convert_to_png(emd_file):
+
+    # read the emd file:
+    emd_file = Path("example_images/Grid_2Q-Abeta_control_2nd_trial 20221017 1156 92000 x.emd")
+    print(f"Converting {emd_file.name}")
+    
+    emd_obj = hs.load(emd_file)
+    img_data = emd_obj.data
+
+    px_size = get_pixel_size(emd_obj)
+
+    # reduce noise via median filter:
+    img_data = filters.median(img_data)
+
+    img_data = convert_to_8bit(img_data)
+
+    # downscale the image:
+    downscale_factor = 0.5
+    img_data = transform.rescale(img_data, scale=downscale_factor, anti_aliasing=True)
+    img_data = convert_to_8bit(img_data)
+    print(f"Size of image scaled by {downscale_factor}:", img_data.shape)
+    px_size = px_size / downscale_factor
+
+    # add ad scalebar and save png file:
+    im = Image.fromarray(img_data)
+    add_scalebar(im, img_data, px_size_meter=px_size_downscaled)
+    save_dest = emd_file.parent / Path(f"{emd_file.stem}.png")
+    print(f"Writing png file (down-)scaled by {downscale_factor} to {save_dest.name}")
+    im.save(save_dest)
+
+convert_to_png(emd_file)
+
+# %%
 test = io.imread("example_images/Grid_2Q-Abeta_control_2nd_trial 20221017 1156 92000 x.png")
-test.shape
+print(test.shape)
+plt.figure()
+plt.title("Converted image with scalebar")
+plt.imshow(test, cmap="gray")
+
+# %%
