@@ -190,7 +190,7 @@ def add_scalebar(im, img_data:np.ndarray, px_size_meter:float):
     # Find the closest value in the list
     sb_len = sorted(sb_lst, key=lambda a: abs(a - sb_len_float))[0]
     sb_len_px = sb_len / px_size_conv
-    sb_start_x, sb_start_y = (im_size_x / 12, im_size_y *11 / 12) #Bottom left corner from 1/12 of FOV
+    sb_start_x, sb_start_y = (im_size_x / 24, im_size_y *11 / 12) #Bottom left corner from 1/12 of FOV
     sb_width = im_size_y / 100
     draw = ImageDraw.Draw(im)
     sb = (sb_start_x, sb_start_y, sb_start_x + sb_len_px, sb_start_y + sb_width)
