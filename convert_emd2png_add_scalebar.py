@@ -132,10 +132,19 @@ def add_scalebar(im, img_data:np.ndarray, px_size_meter:float):
 
 def convert_to_png(emd_file, downsample_factor=0.5):
 
-    # read the emd file:
     print(f"Converting {emd_file.name}")
+
+    save_dest = emd_file.parent / Path(f"{emd_file.stem}.png")
+    if save_dest.exists():
+        print(f"{save_dest.name} already exists. Coninuing with next .emd file.")
+        return None
     
-    emd_obj = hs.load(emd_file)
+    # read the emd file:
+    try:
+        emd_obj = hs.load(emd_file)
+    except OSError:
+        print("Some weird hyperspy related error")
+        return None
     img_data = emd_obj.data
 
     px_size = get_pixel_size(emd_obj)
@@ -155,7 +164,6 @@ def convert_to_png(emd_file, downsample_factor=0.5):
     # add ad scalebar and save png file:
     im = Image.fromarray(img_data)
     add_scalebar(im, img_data, px_size_meter=px_size)
-    save_dest = emd_file.parent / Path(f"{emd_file.stem}.png")
     print(f"Writing png file (down-)scaled by {downsample_factor} to {save_dest.name}")
     im.save(save_dest)
 

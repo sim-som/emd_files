@@ -49,7 +49,11 @@ def convert_to_mrc(emd_file):
 
     print(f"Converting {emd_file.name}")
     # Read image data from file:
-    emd_obj = hs.load(emd_file)
+    try:
+        emd_obj = hs.load(emd_file)
+    except OSError:
+        print("Some weird hyperspy related error")
+        return None
 
     # Change dtype:
     dtype="uint16"

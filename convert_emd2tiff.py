@@ -1,11 +1,12 @@
 #%%
 import numpy as np
-from skimage import exposure, filters, transform, img_as_ubyte
+from skimage import exposure, img_as_int
+from skimage import io
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 import hyperspy.api as hs
 import argparse
-
+import matplotlib.pyplot as plt
 
 #%%
 # Function definitions: 
@@ -35,7 +36,7 @@ def convert_to_tiff(emd_file):
     """Convert velox's emd file to tiff file with 16 bit depth (The velox exporter also exports to 16 bit tif).
     Using the hyperspy API (http://hyperspy.org/hyperspy-doc/current/user_guide/io.html#loading-and-saving-data) for IO.
 
-
+    TODO: Weird behaviour for Atlas and Square images.
 
     Args:
         emd_file (Path_object): The path of the emd file
@@ -46,23 +47,35 @@ def convert_to_tiff(emd_file):
 
     print(f"Converting \"{emd_file.name}\"")
     # Read image data from file:
-    emd_obj = hs.load(emd_file)
+    try:
+        emd_obj = hs.load(emd_file)
+    except OSError:
+        print("Some weird hyperspy related error")
+        return None    
 
-    # ensure that there are no negative values in the image data (otherwise converstion to uint might be problematic):
     img = emd_obj.data
-    # assert (img >= 0).all()
+    print(f"Negative values in image: {(img < 0).any()}")
+    print(f"Numpy array data type: {img.dtype}")
+    print(img.min(), img.max())
 
-    # Change dtype:
-    dtype="uint16"
-    print("Changing dtype from", emd_obj.data.dtype, end=" ")
-    emd_obj.change_dtype(dtype)
-    print("to", emd_obj.data.dtype)
+
+    # img = img_as_int(img)
+
+    print(f"Numpy array data type: {img.dtype}")
+    print(img.min(), img.max())
+
+    # plt.figure()
+    # plt.title(f"{emd_file.name}")
+    # plt.imshow(img, cmap="gray")
+    # plt.show()
+
+
 
     save_dest = emd_file.parent / Path(f"{emd_file.stem}.tiff")
     print(f"Saving converted image to \"{save_dest.name}\"")
-    emd_obj.save(save_dest, overwrite=True)
+    
+    io.imsave(save_dest, img)
 
-    return emd_obj
 
 
 ##################################################################################################

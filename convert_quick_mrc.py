@@ -33,7 +33,11 @@ def convert_to_mrc(emd_file:Path):
     print(f"Converting {emd_file.name} to .mrc ...")
     
     #load emd file:
-    emd_obj = hs.load(emd_file)
+    try:
+        emd_obj = hs.load(emd_file)
+    except OSError:
+        print("Some weird hyperspy related error")
+        return None
     # get image data as numpy array:
     img_array = emd_obj.data
     img_array = img_array.astype(np.uint16)
